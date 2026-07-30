@@ -2,9 +2,25 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from database import engine
 from sqlalchemy import text
+from sqlalchemy import text
 
 app = FastAPI()
 
+@app.get("/next_game_number")
+def get_next_game_number():
+    with engine.connect() as connection:
+        result = connection.execute(
+            text(
+                """
+                SELECT COALESCE(MAX(game_number), 0) + 1
+                FROM game_attempts
+                """
+            )
+        )
+
+        game_number = result.scalar()
+
+    return {"game_number": game_number}
 
 class Attempt(BaseModel):
     game_number: int
